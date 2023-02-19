@@ -1,0 +1,2 @@
+[home]
+zeus ansible_host=192.168.5.30 ansible_user=liamriley ansible_connection=ssh ansible_ssh_private_key_file=~/.ssh/liams-servers

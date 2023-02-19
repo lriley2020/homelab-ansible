@@ -1,0 +1,7 @@
+basic_packages:
+  - net-tools
+  - traceroute
+  - htop
+  - iperf3
+
+username: liamriley
