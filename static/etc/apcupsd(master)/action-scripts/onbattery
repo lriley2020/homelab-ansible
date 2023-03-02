@@ -1,0 +1,14 @@
+#!/bin/sh
+
+OUTPUT=$(/usr/sbin/apcaccess | /usr/bin/grep BCHARGE)
+## Don't even ask about the ????????????????s :) ##
+NOPERCENT=${OUTPUT%???????}
+BATTERYCHARGE=${NOPERCENT#???????????}
+OUTPUT=$(/usr/sbin/apcaccess | /usr/bin/grep TIMELEFT)
+BATTERYTIMELEFT=${OUTPUT#???????????}
+HOSTNAME=`hostname`
+MSG="$1 expirienced a mains power loss at $(/usr/bin/date '+%X %Z'). Battery is $BATTERYCHARGE% charged - $BATTERYTIMELEFT runtime remaining"
+echo $MSG > /root/msg
+echo $USER $UID > /root/user
+/usr/local/bin/ifttt_message -t "Critial Power Loss" -m "$MSG" -s "ups-powerloss" > /root/output
+exit 0

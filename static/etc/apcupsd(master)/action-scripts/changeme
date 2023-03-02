@@ -1,0 +1,7 @@
+#!/bin/sh
+
+HOSTNAME=`hostname`
+MSG="$HOSTNAME UPS $1 battery needs battery replacement."
+
+/usr/local/bin/ifttt_message -t "UPS battery replacement required" -m "$MSG" -s "error"
+exit 0

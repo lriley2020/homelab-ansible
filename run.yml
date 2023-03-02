@@ -5,3 +5,4 @@
 
   tasks:
     - import_tasks: tasks/essential.yml
+    - import_tasks: tasks/setup-apcupsd.yml

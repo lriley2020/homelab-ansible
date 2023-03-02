@@ -1,0 +1,7 @@
+#!/bin/sh
+
+HOSTNAME=`hostname`
+MSG="$HOSTNAME Communications with UPS $1 lost"
+
+/usr/local/bin/ifttt_message -t "UPS connection lost" -m "$MSG" -s "error"
+exit 0

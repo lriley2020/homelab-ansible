@@ -1,0 +1,11 @@
+#!/bin/sh
+
+HOSTNAME=`hostname`
+OUTPUT=$(/usr/sbin/apcaccess | /usr/bin/grep BCHARGE)
+## Don't even ask about the ????????????????s :) ##
+NOPERCENT=${OUTPUT%???????}
+BATTERYCHARGE=${NOPERCENT#???????????}
+MSG="Mains power restored to $1 at $(/usr/bin/date '+%X %Z'). Battery is $BATTERYCHARGE% charged"
+
+/usr/local/bin/ifttt_message -t "Mains power restored" -m "$MSG" -s "ups-powerrestored"
+exit 0

@@ -12,37 +12,29 @@
 
 ## Adding my notifications script ##
 
-- name: "Make home bin directory"
-  file: 
-    path: "/home/{{ username }}/bin"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 0755 
-    state: directory
-
-- name: "Add home bin to PATH"
-  copy:
-    dest: /etc/profile.d/home-bin-path.sh
-    content: "PATH=$PATH:/home/{{ username }}/bin"
-
-
 - name: "Clone ifttt_message git repo"
   git:
    repo: https://github.com/lriley2020/ifttt_message.git
-   dest: "/home/{{ username }}/ifttt_message"
+   dest: "/opt/ifttt_message"
    clone: yes
    update: yes
 
-- name: "Make symlink to ifttt_message script in home bin"
+- name: "Add symlink to ifttt_message script in /usr/local/bin"
   ansible.builtin.file:
-    src: "/home/{{ username }}/ifttt_message/ifttt_message"
-    dest: "/home/{{ username }}/bin/ifttt_message"
-    owner: "{{ username }}"
-    group: "{{  username }}"
+    src: "/opt/ifttt_message/ifttt_message"
+    dest: "/usr/local/bin/ifttt_message"
+    owner: "{{ ansible_user }}"
+    group: "{{  ansible_user }}"
     state: link
 
-- name: "Add IFTTT API key as global var"
-  ansible.builtin.lineinfile:
-    path: "/etc/environment"
-    line: 'IFTTT_KEY={{ ifttt_api_key }}'
+- name: "Add IFTTT API key file to ifttt_message directory"
+  copy:
+    dest: "/opt/ifttt_message/ifttt_key"
+    content: "{{ ifttt_api_key }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user}}"
+
+
+
+
 
