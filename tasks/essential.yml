@@ -4,6 +4,7 @@
   apt:
     update_cache: yes
     upgrade: yes
+    cache_valid_time: 86400
 
 - name: "Install basic packages"
   package:

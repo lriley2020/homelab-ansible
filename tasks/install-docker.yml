@@ -1,0 +1,37 @@
+- name: "Update apt repositories"
+  apt:
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: "Install required packages"
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "ca-certificates"
+    - "curl"
+    - "gnupg"
+    - "lsb-release"
+
+- name: "Add Docker apt Key"
+  apt_key:
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+    state: present
+
+- name: "Add Docker Repository"
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/ubuntu focal stable"
+    state: present
+
+- name: "Update apt and install docker-ce"
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  with_items:
+    - "docker-ce"
+    - "docker-compose-plugin"
+
+
+
+
