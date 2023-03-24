@@ -3,3 +3,6 @@ basic_packages:
   - traceroute
   - htop
   - iperf3
+
+rclone_download_server: "https://downloads.rclone.org"
+rclone_bin_name: "rclone-current-linux-amd64.zip"
