@@ -5,4 +5,5 @@ basic_packages:
   - iperf3
 
 rclone_download_server: "https://downloads.rclone.org"
-rclone_bin_name: "rclone-current-linux-amd64.zip"
+rclone_amd64_bin_name: "rclone-current-linux-amd64.zip"
+rclone_arm_bin_name: "rclone-current-linux-arm.zip"

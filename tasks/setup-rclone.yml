@@ -1,0 +1,107 @@
+- name: "Check if rclone is installed"
+  command: "which rclone"
+  register: rclone_output
+  failed_when: false
+  changed_when: rclone_output.rc != 0
+
+- name: "Install rclone from source"
+  block:   
+    - name: "Create tmp installation directory"
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: build
+      register: tmpdir
+
+    - name: "Get host architecture"
+      shell: dpkg --print-architecture
+      register: deb_architecture
+
+    - name: "Select arm binary"
+      ansible.builtin.set_fact: rclone_bin_name="{{ rclone_arm_bin_name }}"
+      when: '"arm" in deb_architecture.stdout'
+
+    - name: "Select amd64 binary"
+      ansible.builtin.set_fact: rclone_bin_name="{{ rclone_amd64_bin_name }}"
+      when: '"amd64" in deb_architecture.stdout'
+
+    - name: "Download rclone from source"  
+      ansible.builtin.get_url:
+        url: "{{ rclone_download_server }}/{{ rclone_bin_name }}"
+        dest: "{{ tmpdir.path }}/rclone-src.zip"
+
+    - name: "Unzip rclone source"
+      ansible.builtin.unarchive:
+        src: "{{ tmpdir.path }}/rclone-src.zip"
+        dest: "{{ tmpdir.path}}"
+        remote_src: yes
+        list_files: yes
+      register: archive_contents
+
+    - name: "Copy rclone binary to /usr/bin"
+      copy:
+        src: "{{tmpdir.path }}/{{archive_contents.files[0].split('/')[0]}}/rclone"
+        dest: "/usr/bin/"
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: yes
+
+    - name: "Copy rclone man pages"
+      copy:
+        src: "{{tmpdir.path }}/{{ archive_contents.files[0].split('/')[0] }}/rclone.1"
+        dest: "/usr/share/man/man1/"
+        owner: root
+        group: root
+        remote_src: yes
+
+    - name: "Remove tmp installation directory"
+      ansible.builtin.file:
+        path: "{{ tmpdir.path }}"
+        state: absent
+  when: rclone_output.rc != 0
+
+- name: "Set config file path and name"
+  ansible.builtin.set_fact: rclone_config_directory="/etc/rclone" rclone_config_path="/etc/rclone/rclone.conf"
+
+- name: "Check if /etc/rclone/rclone.conf exists"
+  stat:
+    path: "{{ rclone_config_path }}"
+  register: rclone_conf
+
+- name: "Configure storj remotes"
+  block:
+    - name: "Make directory for rclone conf"
+      ansible.builtin.file:
+        path: "{{ rclone_config_directory }}"
+        state: directory
+        mode: '0755'
+
+    - name: "Touch {{ rclone_config_path }}"
+      ansible.builtin.file:
+        path: "{{ rclone_config_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0755"
+        access_time: preserve
+        modification_time: preserve
+
+    - name: "Set storj_backup_name with underscores"
+      ansible.builtin.set_fact: storj_backup_name_underscored="{{ storj_backup_name | replace('-','_') }}"
+
+    - name: "Setup liam-storj-space remote"
+      ansible.builtin.command: "rclone config create \
+        liam-storj-space storj \
+        access_grant {{ vars[storj_backup_name_underscored+'_access_grant'] }}  --config {{ rclone_config_path }}"
+
+    - name: "Setup crypt backup remote"
+      ansible.builtin.command: "rclone config create \
+      {{ storj_backup_name }}-crypt crypt \
+      remote liam-storj-space:{{ storj_backup_name }} \
+      password  {{ vars[storj_backup_name_underscored+'_crypt_pass1'] }} \
+      password2 {{ vars[storj_backup_name_underscored+'_crypt_pass2'] }} \
+      directory_name_encryption true \
+      filename_encryption standard --config {{ rclone_config_path }}"
+  
+  when: (storj_backup_name is defined) and (not rclone_conf.stat.exists)
+
