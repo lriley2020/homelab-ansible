@@ -1,0 +1,11 @@
+- name: "Install restic"
+  block:
+    - name: "Install restic package"
+      package:
+        name: "restic"
+        state: latest
+
+    - name: "Update restic binary if needed"
+      ansible.builtin.command: "restic self-update"
+
+  when: storj_backup_name is defined

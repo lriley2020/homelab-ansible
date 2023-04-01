@@ -37,15 +37,6 @@
 
 - name: "Setup backups with restic"
   block:
-    - name: "Install restic"
-      package:
-        name: "restic"
-        state: latest
-      when: storj_backup_name is defined
-
-    - name: "Update restic if needed"
-      ansible.builtin.command: "restic self-update"
-
     - name: "Create opt directory for backup scripts"
       ansible.builtin.file:
         path: "{{ backup_scripts_directory }}"
