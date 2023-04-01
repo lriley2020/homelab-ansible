@@ -1,0 +1,94 @@
+- name: "Set config file path and name"
+  ansible.builtin.set_fact: rclone_config_directory="/etc/rclone" rclone_config_path="/etc/rclone/rclone.conf" backup_scripts_directory="/opt/backup-scripts"
+
+- name: "Check if /etc/rclone/rclone.conf exists"
+  stat:
+    path: "{{ rclone_config_path }}"
+  register: rclone_conf
+
+- name: "Configure storj remotes"
+  block:
+    - name: "Make directory for rclone conf"
+      ansible.builtin.file:
+        path: "{{ rclone_config_directory }}"
+        state: directory
+        mode: '0755'
+
+    - name: "Touch {{ rclone_config_path }}"
+      ansible.builtin.file:
+        path: "{{ rclone_config_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0755"
+        access_time: preserve
+        modification_time: preserve
+
+    - name: "Set storj_backup_name with underscores"
+      ansible.builtin.set_fact: storj_backup_name_underscored="{{ storj_backup_name | replace('-','_') }}"
+
+    - name: "Setup liam-storj-space remote"
+      ansible.builtin.command: "rclone config create \
+        liam-storj-space storj \
+        access_grant {{ vars[storj_backup_name_underscored+'_access_grant'] }}  --config {{ rclone_config_path }}"
+
+  when: (storj_backup_name is defined) and (not rclone_conf.stat.exists)
+
+
+- name: "Setup backups with restic"
+  block:
+    - name: "Install restic"
+      package:
+        name: "restic"
+        state: latest
+      when: storj_backup_name is defined
+
+    - name: "Update restic if needed"
+      ansible.builtin.command: "restic self-update"
+
+    - name: "Create opt directory for backup scripts"
+      ansible.builtin.file:
+        path: "{{ backup_scripts_directory }}"
+        state: directory
+        owner: root
+        group: root
+    
+    - name: "Copy backup scripts to host"
+      template:
+        src: "{{ item }}"
+        dest: "/opt/backup-scripts/{{ item | basename | regex_replace('\\.j2$', '') }}"
+        owner: root
+        group: root
+      with_fileglob:
+        - "static/opt/backup-scripts({{ storj_backup_name }})/*.j2"
+
+    - name: "Set correct path in cron"
+      ansible.builtin.cron:
+        name: "PATH"
+        env: yes
+        job: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        user: root
+        cron_file: "/etc/cron.d/ansible-cron-jobs"
+
+    - name: "Create cron job to run mailcow backup every night at 23:59"
+      ansible.builtin.cron:
+        name: "Mailcow backup"
+        minute: "59"
+        hour: "23"
+        job: "/opt/backup-scripts/mailcow-backup.sh"
+        user: root
+        cron_file: "/etc/cron.d/ansible-cron-jobs"
+      when: storj_backup_name == "main-server-backups"
+
+    - name: "Create cron job to run backup on 1st day of each month at 3am"
+      ansible.builtin.cron:
+        name: "Full backup"
+        minute: "0"
+        hour: "3"
+        day: "1"
+        job: "/opt/backup-scripts/compose-stacks-backup.sh"
+        user: root
+        cron_file: "/etc/cron.d/ansible-cron-jobs"
+      when: storj_backup_name == "main-server-backups"
+
+  when: storj_backup_name is defined

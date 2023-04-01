@@ -1,0 +1,25 @@
+#!/bin/bash
+
+MAILCOW_ROOT="/opt/compose-stacks/mailcow-dockerized"
+MAILCOW_BACKUP_LOCATION=$MAILCOW_ROOT/backups
+
+## Run the mailcow backup command, deleting the backups older than 2 days, we can restore to versions older than this with restic ##
+MAILCOW_BACKUP_LOCATION=$MAILCOW_ROOT/backups $MAILCOW_ROOT/helper-scripts/backup_and_restore.sh backup all --delete-days 2
+MAILCOW_BACKUP_STATUS=$?
+
+## Restic backup the backups folder/file ONLY, not the whole compose stacks directory ##
+RESTIC_REPOSITORY="rclone:liam-storj-space:main-server-backups" \
+RESTIC_PASSWORD="{{ main_server_backups_restic_repo_pass }}" \
+restic backup $MAILCOW_BACKUP_LOCATION  --pack-size=60 -o rclone.args="serve restic --stdio --b2-hard-delete --config {{ rclone_config_path }}"
+RESTIC_UPLOAD_STATUS=$?
+
+## Restic prune the backups repo ##
+#restic forget --prune
+
+## Send ifttt_message to alert backup status ##
+## Add the two return codes, and they should still be 0 if the two commands were successful ##
+if [ $(($MAILCOW_BACKUP_STATUS+$RESTIC_UPLOAD_STATUS)) -ne 0 ]; then
+    ifttt_message  -s "error" -t "Backup failed" -m "Mailcow backup proccess failed on $HOSTNAME"
+    exit 1
+fi
+ifttt_message  -s "info" -t "Backup completed" -m "Mailcow backup completed successfully on $HOSTNAME"
