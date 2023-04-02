@@ -36,6 +36,12 @@
     group: "{{ ansible_user}}"
 
 
+- name: Set local timezone
+  community.general.timezone:
+    name: Europe/London
+
+
+
 
 
 

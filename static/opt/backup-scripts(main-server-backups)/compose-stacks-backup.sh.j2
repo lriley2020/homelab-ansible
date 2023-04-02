@@ -8,7 +8,7 @@ MAILCOW_BACKUP_LOCATION=$MAILCOW_ROOT/backups
 mapfile -t NOTMAILCOW_CONTAINERS < <( comm -2 -3 <(docker ps -q | sort) <(docker ps -q --filter='name=mailcowdockerized*' | sort) )
 
 ## Send push message that some services are going down for backup ##
-ifttt_message  -s "backup-started" -t "Backup started" -m "Full backup started on $HOSTNAME, some services may be offline while backup completes"
+ifttt_message  -s "info" -t "Backup started" -m "Full backup started on $HOSTNAME, some services may be offline while backup completes"
 
 ## Stop all running containers, except mailcow containers ##
 docker stop ${NOTMAILCOW_CONTAINERS[@]}
@@ -32,4 +32,4 @@ if [ $(($RESTIC_UPLOAD_STATUS+$DOCKER_START_STATUS)) -ne 0 ]; then
     ifttt_message  -s "error" -t "Backup failed" -m "Full backup proccess failed on $HOSTNAME"
     exit 1
 fi
-ifttt_message  -s "info" -t "Backup completed" -m "Full backup completed successfully on $HOSTNAME"
+ifttt_message  -s "backup-completed" -t "Backup completed" -m "Full backup completed successfully on $HOSTNAME"

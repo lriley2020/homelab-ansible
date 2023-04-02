@@ -22,4 +22,4 @@ if [ $(($MAILCOW_BACKUP_STATUS+$RESTIC_UPLOAD_STATUS)) -ne 0 ]; then
     ifttt_message  -s "error" -t "Backup failed" -m "Mailcow backup proccess failed on $HOSTNAME"
     exit 1
 fi
-ifttt_message  -s "info" -t "Backup completed" -m "Mailcow backup completed successfully on $HOSTNAME"
+ifttt_message  -s "backup-completed" -t "Backup completed" -m "Mailcow backup completed successfully on $HOSTNAME"
