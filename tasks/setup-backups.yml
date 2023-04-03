@@ -48,8 +48,8 @@
       template:
         src: "{{ item }}"
         dest: "/opt/backup-scripts/{{ item | basename | regex_replace('\\.j2$', '') }}"
-        owner: root
-        group: root
+        owner: "{{ ansible_user if storj_backup_name == 'raspberryweather-backups' else 'root' }}"
+        group: "{{ ansible_user if storj_backup_name == 'raspberryweather-backups' else 'root' }}"
         mode: "700"
       with_fileglob:
         - "static/opt/backup-scripts({{ storj_backup_name }})/*.j2"
