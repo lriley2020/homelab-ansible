@@ -5,8 +5,8 @@
 
   tasks:
     - import_tasks: tasks/essential.yml
-    # - import_tasks: tasks/setup-apcupsd.yml
+    - import_tasks: tasks/setup-apcupsd.yml
     # - import_tasks: tasks/install-docker.yml
-    # - import_tasks: tasks/install-rclone.yml
-    # - import_tasks: tasks/install-restic.yml
+    - import_tasks: tasks/install-rclone.yml
+    - import_tasks: tasks/install-restic.yml
     - import_tasks: tasks/setup-backups.yml

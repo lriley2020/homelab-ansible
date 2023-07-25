@@ -3,13 +3,15 @@
 RASPBERYWEATHER_ROOT="/home/pi"
 
 ## Dump database into ~mongodb-backups ##
-mongodump -db weather --out mongodb-backups
+mongodump -db weather --out /home/pi/mongodb-backups
 MONGO_DUMP_STATUS=$?
 
-## Backup home directory with restic ##
+## Backup home directory with restic, excluding dot files/folders ##
 RESTIC_REPOSITORY="rclone:liam-storj-space:raspberryweather-backups" \
 RESTIC_PASSWORD="{{ raspberryweather_backups_restic_repo_pass }}" \
-restic backup $RASPBERYWEATHER_ROOT --pack-size=60 -o rclone.args="serve restic --stdio --b2-hard-delete --config {{ rclone_config_path }}"
+restic backup $RASPBERYWEATHER_ROOT --pack-size=60 --exclude "$RASPBERYWEATHER_ROOT/.*" \
+-o rclone.args="serve restic --stdio --b2-hard-delete --config {{ rclone_config_path }}"
+
 RESTIC_UPLOAD_STATUS=$?
 
 ## Send ifttt_message to alert backup status ##
