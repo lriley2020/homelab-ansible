@@ -3,3 +3,4 @@ production-inventory
 staging-inventory
 ansible.ed25519.key
 ansible.ed25519.key.pub
+.idea
