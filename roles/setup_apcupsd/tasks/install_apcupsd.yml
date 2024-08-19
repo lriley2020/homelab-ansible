@@ -1,0 +1,7 @@
+- name: Ensure apt cache is updated.
+  apt: update_cache=yes cache_valid_time=600
+
+- name: Install apcupsd
+  package:
+      name: apcupsd
+      state: latest

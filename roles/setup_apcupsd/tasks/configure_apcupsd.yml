@@ -1,0 +1,35 @@
+- name: Edit apccontrol to halt instead of shutdown, and include scripts directory.
+  replace:
+    path: /etc/apcupsd/apccontrol
+    regexp:  '{{item.From}}'
+    replace: '{{item.To}}'
+  with_items:
+    - { From: '^SCRIPTDIR.*$', To: 'SCRIPTDIR=/etc/apcupsd/action-scripts' }
+    - { From: '-h now', To: '-H now' }
+
+- name: Copy apcupsd.conf template to server and substitute custom values.
+  template:
+    src: "{{ apcupsd_role }}/apcupsd.conf.j2"
+    dest: /etc/apcupsd/apcupsd.conf
+    owner: root
+    group: root
+  notify:
+    - Restart apcupsd
+
+- name: Remove default action scripts.
+  file:
+    path: '/etc/apcupsd/{{ item }}'
+    state: absent
+  with_items:
+    - "changeme"
+    - "commfailure"
+    - "commok"
+    - "offbattery"
+    - "onbattery"
+
+- name: Copy new action scripts.
+  copy:
+    src: "{{ apcupsd_role }}/action-scripts"
+    dest: /etc/apcupsd/
+    owner: root
+    group: root

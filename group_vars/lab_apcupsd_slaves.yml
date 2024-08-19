@@ -1,0 +1,6 @@
+apcupsd_upsname: "Garage-UPS"
+apcupsd_NIS_host: "apcupsd-master.infra.lab.liamriley.me"
+apcupsd_NIS_port: 3551
+apcupsd_slave_minbatperc: 53
+apcupsd_slave_minbatmins: 18
+apcupsd_role: "slave"

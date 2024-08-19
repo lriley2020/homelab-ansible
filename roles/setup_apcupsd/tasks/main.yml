@@ -1,0 +1,5 @@
+- name: Install apcupsd.
+  import_tasks: install_apcupsd.yml
+
+- name: Configure apcupsd.
+  import_tasks: configure_apcupsd.yml

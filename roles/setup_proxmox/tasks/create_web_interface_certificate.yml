@@ -1,0 +1,34 @@
+#https://p3lim.net/2020/05/22/proxmox-acme
+#https://github.com/simoncaron/ansible-role-pve_acme/blob/master/tasks/pve-acme.yml
+
+- name: Check if default ACME account is registered
+  ansible.builtin.command:
+    cmd: pvenode acme account list
+  register: acme_account_list
+  changed_when: false
+  ignore_errors: true
+
+- name: Register default ACME Account.
+  command: "pvenode acme account register default pve@pve --directory https://{ step_ca_server_hostname }}:8443/acme/acme/directory"
+  when: acme_account_list.stdout | length == 0
+
+- name: Check if ACME domain is already configured
+  ansible.builtin.command:
+    cmd: "grep -Fxq 'acme: domains={{ proxmox_server_hostname }}' /etc/pve/local/config"
+  register: acme_domain_list
+  check_mode: false
+  ignore_errors: true
+  changed_when: false
+
+
+- name: Configure TLS certificate for proxmox web interface.
+  command: "pvenode config set --acme domains={{ proxmox_server_hostname }}"
+  when: acme_domain_list.rc != 0
+  register: acme_certificate_configured
+
+- name: Request new certificate.
+  command: "pvenode acme cert order"
+  when: acme_certificate_configured.changed
+
+
+
