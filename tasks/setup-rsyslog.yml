@@ -1,0 +1,21 @@
+- name: "Check that rsyslog is installed"
+  package:
+    name: "rsyslog"
+    state: latest
+
+
+- name: "Configure host to use rsyslog server"
+  ansible.builtin.blockinfile:
+    path: /etc/rsyslog.conf
+    state: present
+    insertafter: "###############"
+    block: |
+      *.* @192.168.5.50:1514
+  register: rsyslog_conf
+
+- name: "Restart rsyslog to load new config"
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
+    enabled: true
+  when: rsyslog_conf.changed
