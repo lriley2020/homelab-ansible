@@ -1,0 +1,18 @@
+---
+- hosts: lab_hp_proliant_servers
+  roles:
+    - role: install_proliant_tools
+      become: yes
+- hosts: all
+  roles:
+    - role: trust_my_root_ca
+      become: yes
+- hosts: proxmox_servers
+  roles:
+    - role: setup_proxmox
+      become: yes
+
+- hosts: lab_apcupsd_slaves:lab_apcupsd_master
+  roles:
+    - role: setup_apcupsd
+      become: yes

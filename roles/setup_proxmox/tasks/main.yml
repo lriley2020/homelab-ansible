@@ -1,0 +1,2 @@
+- name: Create web interface certificate
+  import_tasks: create_web_interface_certificate.yml

@@ -1,0 +1,16 @@
+---
+- name: Ensure /usr/local/share/ca-certificates exists.
+  file:
+    path: /usr/local/share/ca-certificates
+    state: directory
+
+- name: Copy my root CA to server.
+  copy:
+    src: "{{ my_root_ca_path }}"
+    dest: "/usr/local/share/ca-certificates/{{ my_root_ca_path | basename}}"
+  register: my_root_ca_copy
+
+
+- name: Update CA Trust
+  command: update-ca-certificates
+  when: my_root_ca_copy is changed

@@ -1,0 +1,58 @@
+## https://forum.proxmox.com/threads/hp-agentless-management-service.74210/post-463640 ##
+
+- name: Fail if unsupported architecture is present.
+  fail:
+    msg: "HPE tools are only supported on amd64 (x86_64) architecture!"
+  when: ansible_architecture != "x86_64"
+
+- name: Ensure apt cache is updated.
+  apt: update_cache=yes cache_valid_time=600
+
+- name: Check if HPE gpg key installed.
+  stat:
+    path: /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg_armored
+  register: hpe_gpg_key
+
+## Contents of the following block are registered as changed by ansible every time => only run when the
+## hpe_gpg_key doesn't already exist
+
+- name: Install HPE GPG key
+  block:
+    - name: Install GnuPG
+      apt: name=gnupg state=present
+
+    - name: Remove gpg keys if they exist #otherwise GPG doesn't run if file already exists
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg
+        - /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg_armored
+
+    - name: Download HPE gpg key
+      get_url:
+        url: https://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub
+        dest: /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg_armored
+
+    - name: De-Armor HPE GPG key
+      shell: gpg --dearmor < /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg_armored > /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg
+      no_log: true
+      args:
+        creates: /usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg
+  when: not hpe_gpg_key.stat.exists
+
+- name: Add HPE's repository to APT sources list
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hpePublicKey2048-archive-keyring.gpg] https://downloads.linux.hpe.com/SDR/repo/mcp {{ ansible_distribution_release }}/current non-free"
+    state: present
+    update_cache: true
+
+## The below task speeds up playbook execution by not downloading the deb file (only to skip the installation!) if the package is already installed ##
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+
+- name: Install HPE Agentless Management Service
+  apt:
+    deb: https://downloads.linux.hpe.com/SDR/repo/mcp/debian/pool/non-free/hp-ams_2.6.2-2551.13_amd64.deb
+    state: present
+  when: '"hp-ams" not in ansible_facts.packages'
