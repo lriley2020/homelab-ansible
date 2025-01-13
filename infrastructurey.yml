@@ -18,6 +18,10 @@
       become: yes
 
 - hosts: docker_hosts
+  vars:
+    docker_users:  # Ensure only the ansible user is added to the docker group so that ansible can further manage docker
+     - 'ansible'
+    docker_install_compose: true  # Enable Docker Compose installation
   roles:
-    - role: install_docker
+    - role: geerlingguy.docker
       become: yes
