@@ -16,3 +16,8 @@
   roles:
     - role: setup_apcupsd
       become: yes
+
+- hosts: docker_hosts
+  roles:
+    - role: install_docker
+      become: yes

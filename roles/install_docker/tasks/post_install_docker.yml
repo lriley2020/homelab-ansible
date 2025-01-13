@@ -1,0 +1,15 @@
+- name: Start and enable service docker
+  ansible.builtin.service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Create docker group
+  group:
+    name: "{{ docker_group }}"
+    state: present
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    group: "{{ docker_group }}"
