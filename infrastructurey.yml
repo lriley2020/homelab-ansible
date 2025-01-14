@@ -25,3 +25,8 @@
   roles:
     - role: geerlingguy.docker
       become: yes
+
+- hosts: all
+  roles:
+    - role: install-essential-tools
+      become: yes
