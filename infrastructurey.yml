@@ -3,10 +3,12 @@
   roles:
     - role: install_proliant_tools
       become: yes
+
 - hosts: all
   roles:
     - role: trust_my_root_ca
       become: yes
+
 - hosts: proxmox_servers
   roles:
     - role: setup_proxmox
@@ -19,7 +21,7 @@
 
 - hosts: docker_hosts
   vars:
-    docker_users:  # Ensure only the ansible user is added to the docker group so that ansible can further manage docker
+    docker_users:  # Add ansible user to the docker group so that ansible can further manage docker
      - 'ansible'
     docker_install_compose: true  # Enable Docker Compose installation
   roles:

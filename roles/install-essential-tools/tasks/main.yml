@@ -4,4 +4,5 @@
     name:
       - htop
       - rsync
+      - sl
     state: latest
