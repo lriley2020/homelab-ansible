@@ -19,3 +19,6 @@ Run on production playbook:
 
 Run on production playbook, but skip all except specified host:
 `ansible-playbook -i production-inventory site.yml --limit "pve"`
+
+Run on production playbook, but skip unless tagged with "testing" tag:
+`ansible-playbook -i production-inventory site.yml --tags testing`
