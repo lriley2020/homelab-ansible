@@ -1,12 +1,12 @@
 ---
-- hosts: lab_hp_proliant_servers
-  roles:
-    - role: install_proliant_tools
-      become: yes
-
 - hosts: all
   roles:
     - role: trust_my_root_ca
+      become: yes
+
+- hosts: lab_hp_proliant_servers
+  roles:
+    - role: install_proliant_tools
       become: yes
 
 - hosts: proxmox_servers
@@ -31,4 +31,6 @@
 - hosts: all
   roles:
     - role: install-essential-tools
+      become: yes
+    - role: add_motd
       become: yes

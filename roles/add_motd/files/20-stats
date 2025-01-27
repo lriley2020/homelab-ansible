@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Example output:
+# CPU: 1%
+# Processes: 633
+# Load: 0.19 0.32 0.31
+# Memory: 12430MB/15828MB (78%)
+# eno1: up [192.168.5.20]
+# eno1.15: up
+# eno1.69: up
+# Sessions: 0
+# Uptime: 1 week, 4 days
+
+# System metrics
+read cpu user nice system idle iowait stolen < <(head -n1 /proc/stat | awk '{print $1,$2,$3,$4,$5,$6,$8}')
+total=$((user + nice + system + idle + iowait + stolen))
+cpu_usage=$((100 * (total - idle) / total))
+
+# Uptime calculation
+uptime_seconds=$(awk '{print int($1)}' /proc/uptime)
+
+years=$((uptime_seconds / 31536000))
+remaining_seconds=$((uptime_seconds % 31536000))
+
+months=$((remaining_seconds / 2592000))
+remaining_seconds=$((remaining_seconds % 2592000))
+
+weeks=$((remaining_seconds / 604800))
+remaining_seconds=$((remaining_seconds % 604800))
+
+days=$((remaining_seconds / 86400))
+remaining_seconds=$((remaining_seconds % 86400))
+
+hours=$((remaining_seconds / 3600))
+remaining_seconds=$((remaining_seconds % 3600))
+
+minutes=$((remaining_seconds / 60))
+
+pluralize() {
+    local value=$1
+    local unit=$2
+    echo "$value $unit$( [ "$value" -ne 1 ] && echo "s" )"
+}
+
+if [ $years -gt 0 ]; then
+    uptime_str="$(pluralize $years year), $(pluralize $months month)"
+elif [ $months -gt 0 ]; then
+    uptime_str="$(pluralize $months month), $(pluralize $weeks week)"
+elif [ $weeks -gt 0 ]; then
+    uptime_str="$(pluralize $weeks week), $(pluralize $days day)"
+elif [ $days -gt 0 ]; then
+    uptime_str="$(pluralize $days day), $(pluralize $hours hour)"
+else
+    uptime_str="$(pluralize $hours hour), $(pluralize $minutes minute)"
+fi
+
+read load1 load5 load15 _ < /proc/loadavg
+
+mem_total=$(($(grep MemTotal /proc/meminfo | awk '{print $2}') / 1024))
+mem_available=$(($(grep MemAvailable /proc/meminfo | awk '{print $2}') / 1024))
+mem_used=$((mem_total - mem_available))
+mem_percent=$((mem_used * 100 / mem_total))
+
+sessions=$(who | wc -l)
+proc_count=$(ps --no-headers -A | wc -l)
+
+printf "CPU: %d%%\n" "$cpu_usage"
+printf "Processes: %d\n" "$proc_count"
+printf "Load: %s %s %s\n" "$load1" "$load5" "$load15"
+printf "Memory: %dMB/%dMB (%d%%)\n" "$mem_used" "$mem_total" "$mem_percent"
+
+# Get physical and VLAN interfaces
+for interface in $(ls /sys/class/net/ | grep -E '^(en|eth|wl)'); do
+    state=$(cat /sys/class/net/$interface/operstate)
+    ip_addr=$(ip -4 addr show $interface 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
+    echo "$interface: $state ${ip_addr:+[$ip_addr]}"
+done
+
+
+printf "Sessions: %d\n" "$sessions"
+printf "Uptime: %s\n\n" "$uptime_str"
