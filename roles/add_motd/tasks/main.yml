@@ -1,3 +1,14 @@
+- name: Check if /etc/motd is present
+  stat:
+    path: /etc/motd
+  register: motd_check
+
+- name: Clear /etc/motd
+  copy:
+    content: ""
+    dest: /etc/motd
+  when: motd_check.stat.exists
+
 - name: Copy motd script
   ansible.builtin.copy:
     src: 20-stats
