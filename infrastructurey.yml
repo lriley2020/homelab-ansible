@@ -34,3 +34,5 @@
       become: yes
     - role: add_motd
       become: yes
+    - role: setup_time
+      become: yes

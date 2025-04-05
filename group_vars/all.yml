@@ -1,1 +1,6 @@
 step_ca_server_hostname: "ca.infra.lab.liamriley.me"
+
+# These should be in a space separated list
+ntp_servers: "0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org"
+
+timezone: "UTC"

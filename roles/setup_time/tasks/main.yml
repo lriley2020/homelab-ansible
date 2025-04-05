@@ -1,0 +1,38 @@
+- name: Ensure systemd-timesyncd is installed
+  ansible.builtin.package:
+    name: systemd-timesyncd
+    state: present
+    update_cache: true
+
+- name: Set NTP servers in /etc/systemd/timesyncd.conf
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/timesyncd.conf
+    regexp: '^#?NTP='
+    line: "NTP={{ ntp_servers }}"
+    state: present
+  notify:
+      - Restart systemd-timesyncd
+
+- name: Enable NTP sync via timedatectl
+  ansible.builtin.command: timedatectl set-ntp true
+  changed_when: false
+
+- name: Get current timezone
+  ansible.builtin.command: timedatectl show --property=Timezone --value
+  register: current_timezone
+  changed_when: false
+
+- name: Set system timezone to {{ timezone }}
+  ansible.builtin.command: timedatectl set-timezone {{ timezone }}
+  when: current_timezone.stdout != timezone
+  notify:
+    - Restart systemd-timesyncd
+
+- name: Ensure system clock is synchronized
+  ansible.builtin.command: timedatectl status
+  register: time_status
+  changed_when: false
+
+- name: Display time sync status
+  ansible.builtin.debug:
+    msg: "{{ time_status.stdout_lines }}"
