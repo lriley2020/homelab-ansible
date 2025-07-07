@@ -1,0 +1,31 @@
+- name: Ensure Docker Python library is installed
+  package:
+    name: python3-docker
+    state: present
+
+
+- name: "Find all Docker Compose project directories in {{ compose_projects_path }}"
+  find:
+    paths: "{{ compose_projects_path }}"
+    file_type: directory
+    recurse: no
+  register: found_dirs
+
+- name: Filter out skipped project names
+  set_fact:
+    filtered_projects: >-
+      {{
+        found_dirs.files
+        | rejectattr('path', 'search', '(' + skipped_projects | join('|') + ')$')
+        | list
+      }}
+
+- name: Pull latest images for all Docker Compose projects and recreate if needed
+  community.docker.docker_compose_v2:
+    project_src: "{{ item.path }}"
+    state: present
+    pull: always
+    recreate: auto
+  loop: "{{ filtered_projects }}"
+  loop_control:
+    label: "{{ item.path | basename }}"

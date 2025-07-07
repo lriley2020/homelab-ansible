@@ -5,8 +5,8 @@ This repo contains my efforts to learn IaC with Ansible
 
 ### Command snippets
 
-Install required roles:
-`ansible-galaxy role install -r requirements.yml`
+Install required roles and collections:
+`ansible-galaxy install -r requirements.yml`
 
 Ping production hosts:
 `ansible all -m ping -i production-inventory`

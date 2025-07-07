@@ -1,0 +1,3 @@
+compose_projects_path: "/opt/compose-stacks"
+skipped_projects:
+    - "shared-networks"

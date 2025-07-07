@@ -1,0 +1,12 @@
+---
+- hosts: all
+  roles:
+    - role: update_packages
+      become: yes
+
+- hosts: docker_hosts
+  tags:
+    - testing
+  roles:
+    - role: update_compose_stacks
+      become: yes
