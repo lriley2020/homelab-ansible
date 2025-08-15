@@ -29,3 +29,10 @@
   loop: "{{ filtered_projects }}"
   loop_control:
     label: "{{ item.path | basename }}"
+
+- name: Prune unused Docker resources
+  community.docker.docker_prune:
+    containers: yes
+    networks: yes
+    images: yes
+    builder_cache_all: yes
