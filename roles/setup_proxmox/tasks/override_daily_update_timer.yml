@@ -1,0 +1,24 @@
+## See https://bugzilla.proxmox.com/show_bug.cgi?id=5665
+## and https://forum.proxmox.com/threads/any-way-to-make-proxmox-check-if-acme-cert-renewal-needed-on-startup.152980
+
+- name: Ensure systemd override directory exists for pve-daily-update.timer
+  file:
+    path: /etc/systemd/system/pve-daily-update.timer.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Disable randomized delay for pve-daily-update.timer
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/pve-daily-update.timer.d/override.conf
+    content: |
+      [Timer]
+      RandomizedDelaySec=0
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+      - Reload systemd daemon
+      - Restart pve-daily-update.timer
+

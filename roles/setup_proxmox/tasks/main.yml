@@ -1,2 +1,4 @@
 - name: Create web interface certificate
   import_tasks: create_web_interface_certificate.yml
+- name: Overrride cert renewal timer
+  import_tasks: override_daily_update_timer.yml

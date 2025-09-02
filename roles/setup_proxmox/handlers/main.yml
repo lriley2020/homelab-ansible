@@ -1,0 +1,8 @@
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: Restart pve-daily-update.timer
+  systemd:
+    name: pve-daily-update.timer
+    state: restarted
+    enabled: true
