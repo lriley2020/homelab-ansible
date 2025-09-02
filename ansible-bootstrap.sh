@@ -15,9 +15,19 @@ mkdir /home/ansible/.ssh
 
 echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSRJ0Cz7+PC0dhPS8SDLz9uCPY5Ou3I0tvFfWFhy+GT ansible@ansible" > /home/ansible/.ssh/authorized_keys
 
+apt update
+
 apt install sudo
 
 echo "ansible ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 apt install python3
 
+# Ensure sbin directories are in PATH for ansible user
+PROFILE_FILE="/home/ansible/.profile"
+
+# Add sbin directories to PATH if not already present
+if ! grep -q "/sbin" "$PROFILE_FILE"; then
+    echo 'PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin' >> "$PROFILE_FILE"
+    echo 'export PATH' >> "$PROFILE_FILE"
+fi

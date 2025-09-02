@@ -1,16 +1,21 @@
 ---
 - name: Ensure /usr/local/share/ca-certificates exists.
-  file:
+  ansible.builtin.file:
     path: /usr/local/share/ca-certificates
     state: directory
 
 - name: Copy my root CA to server.
-  copy:
+  ansible.builtin.copy:
     src: "{{ my_root_ca_path }}"
     dest: "/usr/local/share/ca-certificates/{{ my_root_ca_path | basename}}"
   register: my_root_ca_copy
 
 
+- name: Install ca-certificates
+  ansible.builtin.package:
+    name: ca-certificates
+    state: latest
+
 - name: Update CA Trust
-  command: update-ca-certificates
+  ansible.builtin.command: update-ca-certificates
   when: my_root_ca_copy is changed

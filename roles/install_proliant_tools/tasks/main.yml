@@ -55,4 +55,6 @@
   apt:
     deb: https://downloads.linux.hpe.com/SDR/repo/mcp/debian/pool/non-free/hp-ams_2.6.2-2551.13_amd64.deb
     state: present
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   when: '"hp-ams" not in ansible_facts.packages'
